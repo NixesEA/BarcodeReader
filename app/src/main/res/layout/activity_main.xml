@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".MainActivity"
-    android:layout_weight="10">
+    android:weightSum="10">
 
     <SurfaceView
         android:id="@+id/surfaceView"
@@ -14,10 +14,51 @@
         android:layout_height="0dp"
         android:layout_weight="8"/>
 
-    <TextView
-        android:id="@+id/textView"
+    <LinearLayout
+        android:layout_weight="2"
+        android:weightSum="100"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="2"
-        android:text="@string/content" />
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_weight="99"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:text="@string/content" />
+
+        <LinearLayout
+            android:layout_weight="1"
+            android:weightSum="2"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <ImageButton
+                android:layout_weight="1"
+                android:id="@+id/flashlightButton"
+                android:src="@mipmap/flashoff_icon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <ImageButton
+                android:layout_weight="1"
+                android:id="@+id/saveContentButton"
+                android:src="@mipmap/save_icon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+    <!--<fragment-->
+        <!--android:id="@+id/basement"-->
+        <!--android:name="com.nixesea.barcodereader.BasementFr"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_weight="1"-->
+        <!--tools:layout="@layout/basement"/>-->
+
 </LinearLayout>
