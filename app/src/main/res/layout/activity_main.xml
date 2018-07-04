@@ -27,7 +27,7 @@
             android:layout_weight="99"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:text="@string/content"
+            android:hint="@string/content"
             android:clickable="true"
             android:onClick="onClick"
             android:scrollbars = "vertical"/>

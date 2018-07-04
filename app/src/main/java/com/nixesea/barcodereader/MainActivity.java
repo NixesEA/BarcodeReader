@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
         barcodeDetector.setProcessor(this);
 
         cameraSource = new CameraSource.Builder(getApplicationContext(), barcodeDetector)
-                .setFacing(cameraSource.CAMERA_FACING_BACK)
+                .setFacing(CameraSource.CAMERA_FACING_BACK)
                 .setRequestedPreviewSize(1024, 720)
                 .setAutoFocusEnabled(true)
                 .setRequestedFps(25)
@@ -145,7 +145,8 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
 
         switch (v.getId()) {
             case R.id.flashlightButton:
-                switchFlash();
+//                switchFlash();
+                Toast.makeText(getApplicationContext(),"Soon",Toast.LENGTH_SHORT).show();
                 break;
             case R.id.saveContentButton:
 //                loadText();
@@ -226,6 +227,9 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
     }
 
     void saveText() {
+        if (textView.getText().equals("")){
+            return;
+        }
 //        Log.i("MY","saveText");
         SQLiteDatabase myDB =
                 openOrCreateDatabase(name_DB, MODE_PRIVATE, null);
@@ -233,7 +237,7 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
         myDB.execSQL(
                 "CREATE TABLE IF NOT EXISTS user (URI VARCHAR(200), time VARCHAR(40))");
         ContentValues row1 = new ContentValues();
-//        row1.put("URI", textView.getText().toString());
+        row1.put("URI", textView.getText().toString());
         //time of request
         String s = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
         row1.put("time", s);
