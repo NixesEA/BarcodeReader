@@ -20,7 +20,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".HistoryActivity"></activity>
+        <activity
+            android:name=".HistoryActivity"
+            android:label="@string/history_label">
+
+
+        </activity>
     </application>
 
 </manifest>

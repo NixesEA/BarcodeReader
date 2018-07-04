@@ -6,8 +6,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -21,12 +19,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.SparseArray;
-import android.view.Display;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,9 +33,7 @@ import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
 
 import java.io.IOException;
-import java.security.Policy;
 import java.util.Calendar;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements Detector.Processor, View.OnClickListener {
 
@@ -54,12 +48,11 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
     private String mCameraId;
     private Boolean isTorchOn = false;
 
-    private SharedPreferences sPref;
-    final String SAVED_TEXT = "saved_text";
-    private int save_count = -1;
-    private int load_count= -1;
+    final String name_DB = "history.db";
 
     private CameraManager mCameraManager;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +60,7 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
         setContentView(R.layout.activity_main);
 
 //        SQLiteDatabase myDB =
-//                openOrCreateDatabase("moon.db", MODE_PRIVATE, null);
+//                openOrCreateDatabase(name_DB, MODE_PRIVATE, null);
 //        myDB.execSQL("DELETE FROM user");
 //        Toast.makeText(this,"delete" , Toast.LENGTH_SHORT).show();
 //        myDB.close();
@@ -233,12 +226,14 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
     }
 
     void saveText() {
+//        Log.i("MY","saveText");
         SQLiteDatabase myDB =
-                openOrCreateDatabase("moon.db", MODE_PRIVATE, null);
+                openOrCreateDatabase(name_DB, MODE_PRIVATE, null);
+//        Log.i("MY","create DB");
         myDB.execSQL(
                 "CREATE TABLE IF NOT EXISTS user (URI VARCHAR(200), time VARCHAR(40))");
         ContentValues row1 = new ContentValues();
-        row1.put("URI", textView.getText().toString());
+//        row1.put("URI", textView.getText().toString());
         //time of request
         String s = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
         row1.put("time", s);
@@ -250,15 +245,15 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
 
     void loadText() {
         SQLiteDatabase myDB =
-                openOrCreateDatabase("moon.db", MODE_PRIVATE, null);
-        Log.i("MY", "t");
+                openOrCreateDatabase(name_DB, MODE_PRIVATE, null);
+//        Log.i("MY", "t");
         Cursor myCursor =
                 myDB.rawQuery("select URI,time from user", null);
         StringBuilder stringBuilder = new StringBuilder();
-        Log.i("MY", "after cursor");
+//        Log.i("MY", "after create cursor");
 
         while(myCursor.moveToNext()) {
-            Log.i("MY", "while");
+//            Log.i("MY", "while");
             stringBuilder.append(myCursor.getString(0));
             stringBuilder.append(myCursor.getString(1));
         }
