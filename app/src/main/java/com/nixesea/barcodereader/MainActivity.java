@@ -2,11 +2,15 @@ package com.nixesea.barcodereader;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
 import android.net.Uri;
@@ -34,6 +38,8 @@ import com.google.android.gms.vision.barcode.BarcodeDetector;
 
 import java.io.IOException;
 import java.security.Policy;
+import java.util.Calendar;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements Detector.Processor, View.OnClickListener {
 
@@ -48,12 +54,23 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
     private String mCameraId;
     private Boolean isTorchOn = false;
 
+    private SharedPreferences sPref;
+    final String SAVED_TEXT = "saved_text";
+    private int save_count = -1;
+    private int load_count= -1;
+
     private CameraManager mCameraManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+//        SQLiteDatabase myDB =
+//                openOrCreateDatabase("my.db", MODE_PRIVATE, null);
+//        myDB.execSQL("DELETE FROM user");
+//        Toast.makeText(this,"delete" , Toast.LENGTH_SHORT).show();
+//        myDB.close();
 
         //make fullscreen mod
         getSupportActionBar().hide();
@@ -138,20 +155,23 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
                 switchFlash();
                 break;
             case R.id.saveContentButton:
-
+                loadText();
+//                Intent intent_history = new Intent(this, HistoryActivity.class);
+//                startActivity(intent_history);
                 break;
             case R.id.textView:
                 String str = (String) textView.getText();
                 String[] subStr;
                 subStr = str.split(" ");
                 for (String aSubStr : subStr) {
-                    if (aSubStr.indexOf("http") >= 0){
+                    if (aSubStr.contains("http")){
                         Uri address = Uri.parse(aSubStr);
                         Intent intent = new Intent(Intent.ACTION_VIEW, address);
                         startActivity(intent);
                         break;
                     }
                 }
+                saveText();
                 break;
         }
 
@@ -210,5 +230,47 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    void saveText() {
+        SQLiteDatabase myDB =
+                openOrCreateDatabase("myk.db", MODE_PRIVATE, null);
+//                openOrCreateDatabase("History.db", MODE_PRIVATE, null);
+        myDB.execSQL(
+                "CREATE TABLE IF NOT EXISTS user (URI VARCHAR(200))");
+//                "CREATE TABLE IF NOT EXISTS user (URI VARCHAR(200), time VARCHAR(40))"
+//        );
+        ContentValues row1 = new ContentValues();
+//        ContentValues row2 = new ContentValues();
+        row1.put("URI", textView.getText().toString());
+        //time of request
+//        String s = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
+//        row2.put("time", s);
+        myDB.insert("user",null, row1);
+//        myDB.insert("user",null, row2);
+        myDB.close();
+
+        Toast.makeText(this, "Text saved", Toast.LENGTH_SHORT).show();
+    }
+
+    void loadText() {
+        SQLiteDatabase myDB =
+//                openOrCreateDatabase("History.db", MODE_PRIVATE, null);
+                openOrCreateDatabase("myk.db", MODE_PRIVATE, null);
+        Log.i("MY", "t");
+        Cursor myCursor =
+                myDB.rawQuery("select URI from user", null);
+        StringBuilder stringBuilder = new StringBuilder();
+        Log.i("MY", "after cursor");
+
+        while(myCursor.moveToNext()) {
+            Log.i("MY", "while");
+            stringBuilder.append(myCursor.getString(0));
+//            stringBuilder.append(myCursor.getString(1));
+        }
+        myCursor.close();
+        myDB.close();
+        textView.setText(stringBuilder);
+        Toast.makeText(this, "Text loaded", Toast.LENGTH_SHORT).show();
     }
 }
