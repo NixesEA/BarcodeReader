@@ -29,7 +29,7 @@ public class HistoryActivity extends AppCompatActivity {
 
         lView = findViewById(R.id.listView);
         SQLiteDatabase myDB =
-                openOrCreateDatabase("History.db", MODE_PRIVATE, null);
+                openOrCreateDatabase("moon.db", MODE_PRIVATE, null);
         Log.i("MY", "t");
         Cursor myCursor =
                 myDB.rawQuery("select URI, time from user", null);
@@ -39,7 +39,7 @@ public class HistoryActivity extends AppCompatActivity {
         String info = "";
         while (myCursor.moveToNext()) {
             Log.i("MY", "while");
-            info = myCursor.getString(0) + "\t" + myCursor.getString(1);
+            info = myCursor.getString(0) + myCursor.getString(1);
             list.add(info);
         }
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,

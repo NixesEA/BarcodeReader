@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
         setContentView(R.layout.activity_main);
 
 //        SQLiteDatabase myDB =
-//                openOrCreateDatabase("my.db", MODE_PRIVATE, null);
+//                openOrCreateDatabase("moon.db", MODE_PRIVATE, null);
 //        myDB.execSQL("DELETE FROM user");
 //        Toast.makeText(this,"delete" , Toast.LENGTH_SHORT).show();
 //        myDB.close();
@@ -155,9 +155,9 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
                 switchFlash();
                 break;
             case R.id.saveContentButton:
-                loadText();
-//                Intent intent_history = new Intent(this, HistoryActivity.class);
-//                startActivity(intent_history);
+//                loadText();
+                Intent intent_history = new Intent(this, HistoryActivity.class);
+                startActivity(intent_history);
                 break;
             case R.id.textView:
                 String str = (String) textView.getText();
@@ -234,20 +234,15 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
 
     void saveText() {
         SQLiteDatabase myDB =
-                openOrCreateDatabase("myk.db", MODE_PRIVATE, null);
-//                openOrCreateDatabase("History.db", MODE_PRIVATE, null);
+                openOrCreateDatabase("moon.db", MODE_PRIVATE, null);
         myDB.execSQL(
-                "CREATE TABLE IF NOT EXISTS user (URI VARCHAR(200))");
-//                "CREATE TABLE IF NOT EXISTS user (URI VARCHAR(200), time VARCHAR(40))"
-//        );
+                "CREATE TABLE IF NOT EXISTS user (URI VARCHAR(200), time VARCHAR(40))");
         ContentValues row1 = new ContentValues();
-//        ContentValues row2 = new ContentValues();
         row1.put("URI", textView.getText().toString());
         //time of request
-//        String s = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
-//        row2.put("time", s);
+        String s = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
+        row1.put("time", s);
         myDB.insert("user",null, row1);
-//        myDB.insert("user",null, row2);
         myDB.close();
 
         Toast.makeText(this, "Text saved", Toast.LENGTH_SHORT).show();
@@ -255,18 +250,17 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
 
     void loadText() {
         SQLiteDatabase myDB =
-//                openOrCreateDatabase("History.db", MODE_PRIVATE, null);
-                openOrCreateDatabase("myk.db", MODE_PRIVATE, null);
+                openOrCreateDatabase("moon.db", MODE_PRIVATE, null);
         Log.i("MY", "t");
         Cursor myCursor =
-                myDB.rawQuery("select URI from user", null);
+                myDB.rawQuery("select URI,time from user", null);
         StringBuilder stringBuilder = new StringBuilder();
         Log.i("MY", "after cursor");
 
         while(myCursor.moveToNext()) {
             Log.i("MY", "while");
             stringBuilder.append(myCursor.getString(0));
-//            stringBuilder.append(myCursor.getString(1));
+            stringBuilder.append(myCursor.getString(1));
         }
         myCursor.close();
         myDB.close();
