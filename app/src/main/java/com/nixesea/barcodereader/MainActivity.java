@@ -7,12 +7,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Vibrator;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -49,30 +49,28 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
     private Boolean isTorchOn = false;
 
     final String name_DB = "history.db";
+    String last_content = "";
 
     private CameraManager mCameraManager;
-
-
+    private Vibrator vibrator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//        SQLiteDatabase myDB =
-//                openOrCreateDatabase(name_DB, MODE_PRIVATE, null);
-//        myDB.execSQL("DELETE FROM user");
-//        Toast.makeText(this,"delete" , Toast.LENGTH_SHORT).show();
-//        myDB.close();
-
         //make fullscreen mod
         getSupportActionBar().hide();
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
+        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
         textView = this.findViewById(R.id.textView);
         surfaceView = this.findViewById(R.id.surfaceView);
+
         flash = findViewById(R.id.flashlightButton);
         save = findViewById(R.id.saveContentButton);
+
         save.setOnClickListener(this);
         flash.setOnClickListener(this);
         textView.setOnClickListener(this);
@@ -87,9 +85,7 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
                 .setRequestedFps(25)
                 .build();
 
-
         final Activity activity = this;
-
         surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
@@ -101,6 +97,7 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
                     isStartCamera = true;
                     cameraSource.start(surfaceView.getHolder());
                 } catch (IOException ie) {
+                    ie.printStackTrace();
                     Log.e("Camera start problem", ie.getMessage());
                 }
             }
@@ -137,8 +134,16 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
                     textView.setText(sb.toString());
                 }
             });
+
+            if (!last_content.equals(sb.toString())){
+                last_content = sb.toString();
+
+                long[] pattern = {0, 250, 75, 250};
+                vibrator.vibrate(pattern, -1);
+            }
         }
     }
+
 
     @Override
     public void onClick(View v) {
@@ -146,10 +151,10 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
         switch (v.getId()) {
             case R.id.flashlightButton:
 //                switchFlash();
-                Toast.makeText(getApplicationContext(),"Soon",Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Soon", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.saveContentButton:
-//                loadText();
+                saveText();
                 Intent intent_history = new Intent(this, HistoryActivity.class);
                 startActivity(intent_history);
                 break;
@@ -158,8 +163,12 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
                 String[] subStr;
                 subStr = str.split(" ");
                 for (String aSubStr : subStr) {
-                    if (aSubStr.contains("http")){
-                        Uri address = Uri.parse(aSubStr);
+                    if(validateUrl(aSubStr)){
+                        Uri address;
+                        address = Uri.parse(aSubStr);
+                        if(!aSubStr.equals("http") && !aSubStr.equals("https")){
+                            address = Uri.parse("http://" + aSubStr);
+                        }
                         Intent intent = new Intent(Intent.ACTION_VIEW, address);
                         startActivity(intent);
                         break;
@@ -168,7 +177,10 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
                 saveText();
                 break;
         }
+    }
 
+    public boolean validateUrl(String address){
+        return android.util.Patterns.WEB_URL.matcher(address).matches();
     }
 
     private void switchFlash() {
@@ -227,43 +239,21 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
     }
 
     void saveText() {
-        if (textView.getText().equals("")){
+        if (textView.getText().equals("")) {
             return;
         }
-//        Log.i("MY","saveText");
         SQLiteDatabase myDB =
                 openOrCreateDatabase(name_DB, MODE_PRIVATE, null);
-//        Log.i("MY","create DB");
         myDB.execSQL(
                 "CREATE TABLE IF NOT EXISTS user (URI VARCHAR(200), time VARCHAR(40))");
         ContentValues row1 = new ContentValues();
         row1.put("URI", textView.getText().toString());
-        //time of request
+
         String s = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
         row1.put("time", s);
-        myDB.insert("user",null, row1);
+        myDB.insert("user", null, row1);
         myDB.close();
 
         Toast.makeText(this, "Text saved", Toast.LENGTH_SHORT).show();
-    }
-
-    void loadText() {
-        SQLiteDatabase myDB =
-                openOrCreateDatabase(name_DB, MODE_PRIVATE, null);
-//        Log.i("MY", "t");
-        Cursor myCursor =
-                myDB.rawQuery("select URI,time from user", null);
-        StringBuilder stringBuilder = new StringBuilder();
-//        Log.i("MY", "after create cursor");
-
-        while(myCursor.moveToNext()) {
-//            Log.i("MY", "while");
-            stringBuilder.append(myCursor.getString(0));
-            stringBuilder.append(myCursor.getString(1));
-        }
-        myCursor.close();
-        myDB.close();
-        textView.setText(stringBuilder);
-        Toast.makeText(this, "Text loaded", Toast.LENGTH_SHORT).show();
     }
 }
