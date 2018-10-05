@@ -7,16 +7,17 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.SurfaceHolder;
@@ -33,6 +34,7 @@ import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity implements Detector.Processor, View.OnClickListener {
@@ -48,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
     private String mCameraId;
     private Boolean isTorchOn = false;
 
-    final String name_DB = "history.db";
+    final String name_DB = "QRCode_history.db";
     String last_content = "";
 
     private CameraManager mCameraManager;
@@ -62,6 +64,11 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
         //make fullscreen mod
         getSupportActionBar().hide();
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+//        SQLiteDatabase myDB =
+//                openOrCreateDatabase(name_DB, MODE_PRIVATE, null);
+//        myDB.delete("user",null,null);
+//        Toast.makeText(getApplicationContext(),"delete",Toast.LENGTH_LONG).show();
 
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
@@ -159,22 +166,30 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
                 startActivity(intent_history);
                 break;
             case R.id.textView:
+                saveText();
+
                 String str = (String) textView.getText();
                 String[] subStr;
                 subStr = str.split(" ");
+
+                Log.i("myTAG", Arrays.toString(subStr));
+
                 for (String aSubStr : subStr) {
-                    if(validateUrl(aSubStr)){
-                        Uri address;
-                        address = Uri.parse(aSubStr);
-                        if(!aSubStr.equals("http") && !aSubStr.equals("https")){
+                    aSubStr.replace("\n","");
+                    Log.i("myTAG", "aSubStr= " + aSubStr);
+
+//                    if(validateUrl(aSubStr)){
+                        Uri address = Uri.parse(aSubStr);
+                        if(!aSubStr.startsWith("http://") && !aSubStr.startsWith("https://")){
                             address = Uri.parse("http://" + aSubStr);
                         }
+                        Log.i("myTAG", "address = " + address);
+
                         Intent intent = new Intent(Intent.ACTION_VIEW, address);
                         startActivity(intent);
                         break;
-                    }
+//                    }
                 }
-                saveText();
                 break;
         }
     }
@@ -242,11 +257,22 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
         if (textView.getText().equals("")) {
             return;
         }
+
         SQLiteDatabase myDB =
                 openOrCreateDatabase(name_DB, MODE_PRIVATE, null);
         myDB.execSQL(
-                "CREATE TABLE IF NOT EXISTS user (URI VARCHAR(200), time VARCHAR(40))");
+                "CREATE TABLE IF NOT EXISTS user (id VARCHAR(100), URI VARCHAR(200), time VARCHAR(40))");
+        Cursor myCursor =
+                myDB.rawQuery("select id, URI, time from user", null);
+
+        myCursor.moveToLast();
+        String lastURL = myCursor.getString(1);
+        if (lastURL.equals(textView.getText().toString())){
+            return;
+        }
+
         ContentValues row1 = new ContentValues();
+        row1.put("id", myCursor.getCount() + 1 + "\n");
         row1.put("URI", textView.getText().toString());
 
         String s = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
@@ -254,6 +280,6 @@ public class MainActivity extends AppCompatActivity implements Detector.Processo
         myDB.insert("user", null, row1);
         myDB.close();
 
-        Toast.makeText(this, "Text saved", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Text saved, id = " + myCursor.getCount(), Toast.LENGTH_SHORT).show();
     }
 }
